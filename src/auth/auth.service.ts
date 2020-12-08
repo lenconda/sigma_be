@@ -1,12 +1,25 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './auth.entity';
 import { Repository } from 'typeorm';
+import { User } from 'src/user/user.entity';
 
 @Injectable()
 export class AuthService {
-  @InjectRepository(User)
-  private readonly userRepository: Repository<User>;
+  constructor(
+    private readonly jwtService: JwtService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
+
+  /**
+   * validate user
+   * @param email email
+   * @param password password
+   */
+  async validateUser(email: string, password: string) {
+    return await this.userRepository.findOne({ email, password });
+  }
 
   /**
    * login
@@ -14,11 +27,13 @@ export class AuthService {
    * @param password password
    */
   async login(email: string, password: string) {
-    const result = await this.userRepository.findOne({ email, password });
+    const result = await this.validateUser(email, password);
     if (!result) {
       throw new ForbiddenException('账户名或密码错误');
     }
-    return result;
+    return {
+      token: this.jwtService.sign({ email }),
+    };
   }
 
   /**

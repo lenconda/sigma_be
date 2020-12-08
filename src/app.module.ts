@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { getMetadataArgsStorage } from 'typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import DBConfig from '../db.config';
 
-import { AuthModule } from './routes/auth/auth.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { SessionModule } from './session/session.module';
 
 const {
   DB_HOST = 'localhost',
@@ -29,6 +32,8 @@ const {
       synchronize: true,
     }),
     AuthModule,
+    UserModule,
+    SessionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
