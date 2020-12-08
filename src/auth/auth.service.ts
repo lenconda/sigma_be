@@ -50,7 +50,7 @@ export class AuthService {
       password,
       avatar: '/assets/images/default_avatar.jpg',
     });
-    await this.userRepository.save(user);
+    await this.userRepository.insert(user);
     return {
       token: this.jwtService.sign({ email }),
     };
