@@ -12,4 +12,12 @@ export class SessionController {
   ) {
     return await this.authService.login(email, password);
   }
+
+  @Post('/register')
+  async register(
+    @Body('email') email: string,
+    @Body('password') password: string,
+  ) {
+    return await this.authService.register(email, password);
+  }
 }

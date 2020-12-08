@@ -50,7 +50,9 @@ export class AuthService {
       password,
       avatar: '/assets/images/default_avatar.jpg',
     });
-    const result = await this.userRepository.save(user);
-    return result;
+    await this.userRepository.save(user);
+    return {
+      token: this.jwtService.sign({ email }),
+    };
   }
 }
