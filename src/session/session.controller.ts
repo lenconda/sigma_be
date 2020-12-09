@@ -1,20 +1,16 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { AuthService } from '../auth/auth.service';
 import { SessionService } from './session.service';
 
 @Controller('/api/session')
 export class SessionController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly sessionService: SessionService,
-  ) {}
+  constructor(private readonly sessionService: SessionService) {}
 
   @Post('/login')
   async login(
     @Body('email') email: string,
     @Body('password') password: string,
   ) {
-    return await this.authService.login(email, password);
+    return await this.sessionService.login(email, password);
   }
 
   @Post('/register')
@@ -22,7 +18,7 @@ export class SessionController {
     @Body('email') email: string,
     @Body('password') password: string,
   ) {
-    return await this.authService.register(email, password);
+    return await this.sessionService.register(email, password);
   }
 
   @Get('/active')

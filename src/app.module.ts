@@ -1,4 +1,4 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import path from 'path';
 import { getMetadataArgsStorage } from 'typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -50,8 +50,4 @@ const {
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply;
-  }
-}
+export class AppModule {}
