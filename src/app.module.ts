@@ -1,7 +1,9 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import path from 'path';
 import { getMetadataArgsStorage } from 'typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import DBConfig from '../db.config';
+import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import localConfig from '../local.config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,24 +12,25 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { SessionModule } from './session/session.module';
 import { PreferencesModule } from './preferences/preferences.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 const {
-  DB_HOST = 'localhost',
-  DB_NAME = 'tail',
-  DB_PASSWORD = '',
-  DB_PORT = 3306,
-  DB_USER = 'root',
-} = DBConfig;
+  HOST = 'localhost',
+  NAME = 'tail',
+  PASSWORD = '',
+  PORT = 3306,
+  USER = 'root',
+} = localConfig.DB;
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: DB_HOST,
-      port: DB_PORT,
-      username: DB_USER,
-      password: DB_PASSWORD,
-      database: DB_NAME,
+      host: HOST,
+      port: PORT,
+      username: USER,
+      password: PASSWORD,
+      database: NAME,
       entities: getMetadataArgsStorage().tables.map((table) => table.target),
       keepConnectionAlive: true,
       synchronize: true,
@@ -36,6 +39,13 @@ const {
     UserModule,
     SessionModule,
     PreferencesModule,
+    MailerModule.forRoot({
+      transport: localConfig.SMTP,
+      template: {
+        dir: path.join(process.cwd(), 'src/utils/mail/'),
+        adapter: new EjsAdapter(),
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

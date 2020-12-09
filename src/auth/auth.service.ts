@@ -3,6 +3,10 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/user.entity';
+import md5 from 'md5';
+import { MailerService } from '@nestjs-modules/mailer';
+import appConfig from '../../app.config';
+import localConfig from '../../local.config';
 
 @Injectable()
 export class AuthService {
@@ -10,6 +14,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly mailerService: MailerService,
   ) {}
 
   /**
@@ -18,7 +23,10 @@ export class AuthService {
    * @param password password
    */
   async validateUser(email: string, password: string) {
-    return await this.userRepository.findOne({ email, password });
+    return await this.userRepository.findOne({
+      email,
+      password: md5(password),
+    });
   }
 
   /**
@@ -26,7 +34,7 @@ export class AuthService {
    * @param email email
    */
   async findUser(email: string) {
-    return await this.userRepository.findOne({ email });
+    return await this.userRepository.findOne({ email, active: true });
   }
 
   /**
@@ -58,8 +66,24 @@ export class AuthService {
     }
     const user = this.userRepository.create({
       email,
-      password,
+      password: md5(password),
       avatar: '/assets/images/default_avatar.jpg',
+      code: Math.floor(Math.random() * 1000000).toString(),
+    });
+    await this.mailerService.sendMail({
+      to: email,
+      from: 'no-reply@lenconda.top',
+      subject: `[${appConfig.name.toUpperCase()}] 验证你的电子邮箱`,
+      template: 'mail',
+      sender: `${appConfig.name.toUpperCase()}团队`,
+      context: {
+        appName: appConfig.name.toUpperCase(),
+        username: email,
+        mainContent: `在不久前，你曾经使用这个电子邮箱地址注册了 [${appConfig.name}] 服务，或者在使用该服务的过程中执行了与账户安全相关的操作，因此我们将你的账户暂时冻结，并向你发送了这封邮件。请点击下面的按钮执行账户激活操作：`,
+        linkHref: `${localConfig.SERVICE.HOST}/user/active?email=${user.email}&code=${user.code}`,
+        linkContent: '激活账户',
+        placeholder: '',
+      },
     });
     await this.userRepository.insert(user);
     return {

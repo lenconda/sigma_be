@@ -18,6 +18,9 @@ export class User {
   @Column()
   avatar: string;
 
+  @Column({ select: false })
+  code: string;
+
   @Column({ default: false })
   active: boolean;
 
