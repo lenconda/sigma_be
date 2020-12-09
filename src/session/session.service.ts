@@ -38,7 +38,9 @@ export class SessionService {
     }
     user.active = true;
     user.code = '';
-    return await this.userRepository.save(user);
+    return {
+      token: this.authService.sign(email),
+    };
   }
 
   /**
@@ -77,15 +79,15 @@ export class SessionService {
     await this.mailerService.sendMail({
       to: email,
       from: 'no-reply@lenconda.top',
-      subject: `[${appConfig.name.toUpperCase()}] 验证你的电子邮箱`,
+      subject: `【${appConfig.name.toUpperCase()}】验证你的邮箱地址`,
       template: 'mail',
-      sender: `${appConfig.name.toUpperCase()}团队`,
       context: {
         appName: appConfig.name.toUpperCase(),
-        username: email,
-        mainContent: `在不久前，你曾经使用这个电子邮箱地址注册了 [${appConfig.name}] 服务，你的账户现在需要你的验证来激活。因此我们向你发送了这封邮件。请点击下面的按钮执行账户激活操作：`,
-        linkHref: `${localConfig.SERVICE.HOST}/user/active?email=${user.email}&code=${user.code}`,
-        linkContent: '激活账户',
+        mainContent: `在不久前，这个邮箱被用于注册 ${appConfig.name.toUpperCase()} 服务。但是，到目前为止，我们仍无法信任这个邮箱。因此，我们需要你点击下面的链接完成邮箱的验证：`,
+        linkHref: `${localConfig.SERVICE.HOST}/user/active?m=${Buffer.from(
+          user.email,
+        ).toString('base64')}&c=${user.code}`,
+        linkContent: '验证邮箱地址',
         placeholder: '',
       },
     });

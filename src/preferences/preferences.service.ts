@@ -4,12 +4,19 @@ import { User } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
 import _ from 'lodash';
 import md5 from 'md5';
+import { MailerService } from '@nestjs-modules/mailer';
+
+import appConfig from '../../app.config';
+import localConfig from '../../local.config';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class PreferencesService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>, // private readonly jwtService: JwtService,
+    private readonly userRepository: Repository<User>,
+    private readonly mailerService: MailerService,
+    private readonly authService: AuthService,
   ) {}
 
   /**
@@ -34,10 +41,28 @@ export class PreferencesService {
    * @param email string
    */
   async updateEmailAddress(user: User, email: string) {
-    const newUserInfo = _.merge(user, { email });
-    await this.userRepository.save(newUserInfo);
+    const code = Math.floor(Math.random() * 1000000).toString();
+    await this.mailerService.sendMail({
+      to: email,
+      from: 'no-reply@lenconda.top',
+      subject: `【${appConfig.name.toUpperCase()}】验证你的邮箱地址`,
+      template: 'mail',
+      context: {
+        appName: appConfig.name.toUpperCase(),
+        mainContent: `在不久前，这个邮箱被用于绑定 ${appConfig.name} 服务。但是，到目前为止，我们仍无法信任这个邮箱。因此，我们需要你点击下面的链接完成邮箱的验证：`,
+        linkHref: `${localConfig.SERVICE.HOST}/user/active?m=${Buffer.from(
+          email,
+        ).toString('base64')}&c=${code}`,
+        linkContent: '验证邮箱地址',
+        placeholder: '',
+      },
+    });
+    await this.userRepository.update(
+      { email: user.email },
+      { email, active: false, code },
+    );
     return {
-      // token: this.jwtService.sign({ email }),
+      token: this.authService.sign(email),
     };
   }
 
