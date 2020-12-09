@@ -22,6 +22,14 @@ export class AuthService {
   }
 
   /**
+   * find a user
+   * @param email email
+   */
+  async findUser(email: string) {
+    return await this.userRepository.findOne({ email });
+  }
+
+  /**
    * login
    * @param email email
    * @param password password
@@ -30,6 +38,9 @@ export class AuthService {
     const result = await this.validateUser(email, password);
     if (!result) {
       throw new ForbiddenException('账户名或密码错误');
+    }
+    if (!result.active) {
+      throw new ForbiddenException('在使用本服务前，请激活该账户');
     }
     return {
       token: this.jwtService.sign({ email }),

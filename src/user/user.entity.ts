@@ -18,6 +18,9 @@ export class User {
   @Column()
   avatar: string;
 
+  @Column({ default: false })
+  active: boolean;
+
   @Column({ nullable: true })
   name: string;
 

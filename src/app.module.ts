@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { getMetadataArgsStorage } from 'typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import DBConfig from '../db.config';
@@ -9,6 +9,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { SessionModule } from './session/session.module';
+import { PreferencesModule } from './preferences/preferences.module';
 
 const {
   DB_HOST = 'localhost',
@@ -34,8 +35,13 @@ const {
     AuthModule,
     UserModule,
     SessionModule,
+    PreferencesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply;
+  }
+}
