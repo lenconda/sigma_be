@@ -35,7 +35,6 @@ const {
       entities: getMetadataArgsStorage().tables.map((table) => table.target),
       keepConnectionAlive: true,
       synchronize: true,
-      logging: true,
     }),
     AuthModule,
     UserModule,

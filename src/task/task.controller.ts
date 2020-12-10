@@ -18,18 +18,22 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('')
-  async createTask(@CurrentUser() user: User, @Body() task: any) {
-    return await this.taskService.createTask(user, task);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id/children')
   async getFirstLevelChildTasks(
     @CurrentUser() user: User,
     @Param('id') id: string,
   ) {
     return await this.taskService.getFirstLevelChildTasks(user, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id')
+  async createTask(
+    @CurrentUser() user: User,
+    @Body() task: any,
+    @Param('id') id: string,
+  ) {
+    return await this.taskService.createTask(user, task, id);
   }
 
   @UseGuards(AuthGuard('jwt'))

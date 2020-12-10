@@ -69,10 +69,13 @@ export class TaskService {
    * @param user User
    * @param info TaskListItem
    */
-  async createTask(user: User, task: TaskListItem) {
-    const currentUser = await this.userRepository.findOne({
-      email: user.email,
-    });
+  async createTask(user: User, task: TaskListItem, parentTaskId: string) {
+    const currentUser = await this.userRepository.findOne(
+      {
+        email: user.email,
+      },
+      { relations: ['tasks'] },
+    );
     const taskToBeCreated = Object.keys(task).reduce((result, key) => {
       if (key !== 'parentTaskId') {
         result[key] = task[key];
@@ -80,14 +83,26 @@ export class TaskService {
       return result;
     }, {});
     const parentTaskInfo =
-      task.parentTaskId === 'default'
-        ? await this.taskRepository.findOne({
-            taskId: task.parentTaskId,
-          })
-        : await this.taskRepository.findOne({ taskId: 'default' });
+      parentTaskId === 'default'
+        ? await this.taskRepository.findOne(
+            {
+              taskId: parentTaskId,
+            },
+            { relations: ['children'] },
+          )
+        : await this.taskRepository.findOne(
+            { taskId: 'default' },
+            { relations: ['children'] },
+          );
     const taskInfo = this.taskRepository.create(taskToBeCreated);
-    parentTaskInfo.children = (parentTaskInfo.children || []).concat(taskInfo);
-    currentUser.tasks = (currentUser.tasks || []).concat(taskInfo);
+    parentTaskInfo.children = (
+      (parentTaskInfo.children && Array.from(parentTaskInfo.children)) ||
+      []
+    ).concat(taskInfo);
+    currentUser.tasks = (
+      (currentUser.tasks && Array.from(currentUser.tasks)) ||
+      []
+    ).concat(taskInfo);
     const result = await this.taskRepository.insert(taskInfo);
     await this.taskRepository.save(parentTaskInfo);
     await this.userRepository.save(currentUser);
