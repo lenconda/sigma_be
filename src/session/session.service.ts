@@ -36,8 +36,7 @@ export class SessionService {
     if (user.active) {
       throw new BadRequestException('账户已激活，无需再次激活');
     }
-    user.active = true;
-    user.code = '';
+    await this.userRepository.update({ email }, { code: '', active: true });
     return {
       token: this.authService.sign(email),
     };

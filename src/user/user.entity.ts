@@ -1,3 +1,4 @@
+import { Task } from 'src/task/task.entity';
 import {
   Entity,
   Column,
@@ -5,6 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity({ name: 'users' })
@@ -27,7 +29,7 @@ export class User {
   @Column({ nullable: true })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'datetime' })
   birthday: Date;
 
   @Column({ nullable: true })
@@ -41,4 +43,10 @@ export class User {
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date;
+
+  @OneToMany(() => Task, (task) => task.creator, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  tasks: Task[];
 }
