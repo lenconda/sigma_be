@@ -96,4 +96,54 @@ export class SessionService {
       token: this.authService.sign(email),
     };
   }
+
+  /**
+   * forget password
+   * @param email email
+   */
+  async forgetPassword(email: string) {
+    const userInfo = await this.userRepository.findOne({ email });
+    if (!userInfo) {
+      return {};
+    }
+    const code = Math.floor(Math.random() * 1000000).toString();
+    await this.mailerService.sendMail({
+      to: email,
+      from: 'no-reply@lenconda.top',
+      subject: `【${appConfig.name.toUpperCase()}】修改你的账户密码`,
+      template: 'mail',
+      context: {
+        appName: appConfig.name.toUpperCase(),
+        mainContent: `在不久前，这个邮箱被绑定的 ${appConfig.name} 账户发起忘记密码操作。因此，我们需要你点击下面的链接完成账户密码的重置：`,
+        linkHref: `${localConfig.SERVICE.HOST}/user/reset?m=${Buffer.from(
+          email,
+        ).toString('base64')}&c=${code}`,
+        linkContent: '重置账户密码',
+        placeholder: '',
+      },
+    });
+    await this.userRepository.save({ ...userInfo, code });
+    return {};
+  }
+
+  /**
+   * reset password
+   * @param email
+   * @param code string
+   * @param password string
+   */
+  async resetPassword(email: string, code: string, password: string) {
+    const userInfo = await this.userRepository.findOne({
+      email,
+      code,
+    });
+    if (!userInfo) {
+      throw new ForbiddenException('无法识别当前用户');
+    }
+    const newUserInfo: User = { ...userInfo, password, code: '' };
+    await this.userRepository.save(newUserInfo);
+    return {
+      token: this.authService.sign(email),
+    };
+  }
 }

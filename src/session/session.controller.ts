@@ -25,4 +25,18 @@ export class SessionController {
   async active(@Query('email') email: string, @Query('code') code: string) {
     return await this.sessionService.active(email, code);
   }
+
+  @Post('/forget_password')
+  async forgetPassword(@Body('email') email: string) {
+    return await this.sessionService.forgetPassword(email);
+  }
+
+  @Post('/reset_password')
+  async resetPassword(
+    @Body('email') email: string,
+    @Body('code') code: string,
+    @Body('password') password: string,
+  ) {
+    return await this.sessionService.resetPassword(email, code, password);
+  }
 }
