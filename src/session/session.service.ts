@@ -140,7 +140,11 @@ export class SessionService {
     if (!userInfo) {
       throw new ForbiddenException('无法识别当前用户');
     }
-    const newUserInfo: User = { ...userInfo, password, code: '' };
+    const newUserInfo: User = {
+      ...userInfo,
+      password: md5(password),
+      code: '',
+    };
     await this.userRepository.save(newUserInfo);
     return {
       token: this.authService.sign(email),
