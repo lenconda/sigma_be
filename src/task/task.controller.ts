@@ -44,8 +44,12 @@ export class TaskController {
 
   @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
-  async updateTaskInfo(@CurrentUser() user: User, @Body() updates: any) {
-    return await this.taskService.updateTask(user, updates);
+  async updateTaskInfo(
+    @CurrentUser() user: User,
+    @Param('id') id: string,
+    @Body() updates: any,
+  ) {
+    return await this.taskService.updateTask(user, id, updates);
   }
 
   @UseGuards(AuthGuard('jwt'))

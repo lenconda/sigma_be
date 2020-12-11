@@ -37,7 +37,10 @@ export class TaskService {
   }
 
   private async checkTask(user: User, taskId: string): Promise<Task> {
-    const taskInfo = await this.taskRepository.findOne({ taskId });
+    const taskInfo = await this.taskRepository.findOne(
+      { taskId },
+      { relations: ['creator'] },
+    );
     if (!taskInfo) {
       throw new NotFoundException('未找到匹配的任务信息');
     }
@@ -112,20 +115,18 @@ export class TaskService {
   /**
    * update a task
    * @param user User
-   * @param task TaskListItem
+   * @param taskId string
+   * @param updates TaskListItem
    */
-  async updateTask(user: User, task: TaskListItem) {
-    await this.checkTask(user, task.taskId);
-    const newTaskInfo = Object.keys(task).reduce((result, currentKey) => {
-      if (currentKey !== 'parentTaskId') {
-        result[currentKey] = task[currentKey];
+  async updateTask(user: User, taskId: string, updates: Partial<TaskListItem>) {
+    await this.checkTask(user, taskId);
+    const newTaskInfo = Object.keys(updates).reduce((result, currentKey) => {
+      if (currentKey !== 'parentTaskId' && currentKey !== 'taskId') {
+        result[currentKey] = updates[currentKey];
       }
       return result;
     }, {});
-    return await this.taskRepository.update(
-      { taskId: task.taskId },
-      newTaskInfo,
-    );
+    return await this.taskRepository.update({ taskId }, newTaskInfo);
   }
 
   /**
@@ -134,8 +135,8 @@ export class TaskService {
    * @param task TaskListItem
    */
   async deleteTask(user: User, taskId: string) {
-    const taskInfo = await this.checkTask(user, taskId);
-    return await this.taskRepository.softDelete(taskInfo);
+    await this.checkTask(user, taskId);
+    return await this.taskRepository.softDelete({ taskId });
   }
 
   /**
