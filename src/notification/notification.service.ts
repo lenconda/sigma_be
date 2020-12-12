@@ -158,4 +158,18 @@ export class NotificationService {
         throw new BadRequestException('参数错误');
     }
   }
+
+  async check(user: User, notificationId: number) {
+    const notification = await this.notificationRepository.findOne({
+      notificationId,
+    });
+    if (!notification) {
+      return {};
+    }
+    return await this.userNotificationRepository.save({
+      checked: true,
+      notification,
+      user,
+    });
+  }
 }

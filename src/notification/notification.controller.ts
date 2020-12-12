@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/user/user.decorator';
 import { User } from 'src/user/user.entity';
@@ -28,5 +37,11 @@ export class NotificationController {
       size,
       type,
     );
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id')
+  async check(@CurrentUser() user: User, @Param('id') id: number) {
+    return await this.notificationService.check(user, id);
   }
 }
