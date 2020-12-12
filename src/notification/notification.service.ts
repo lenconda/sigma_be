@@ -159,6 +159,11 @@ export class NotificationService {
     }
   }
 
+  /**
+   * check a notification
+   * @param user User
+   * @param notificationId number
+   */
   async check(user: User, notificationId: number) {
     const notification = await this.notificationRepository.findOne({
       notificationId,
