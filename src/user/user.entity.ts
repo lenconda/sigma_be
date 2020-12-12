@@ -1,4 +1,5 @@
 import { Task } from 'src/task/task.entity';
+import { Notification } from 'src/notification/notification.entity';
 import {
   Entity,
   Column,
@@ -8,6 +9,7 @@ import {
   DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
+import { UserNotification } from 'src/notification/user_notification.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -49,4 +51,20 @@ export class User {
     onUpdate: 'CASCADE',
   })
   tasks: Task[];
+
+  @OneToMany(() => Notification, (notification) => notification.sender, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  sendedNotifications: Notification[];
+
+  @OneToMany(
+    () => UserNotification,
+    (userNotification) => userNotification.user,
+    {
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    },
+  )
+  userNotifications: UserNotification[];
 }

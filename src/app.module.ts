@@ -14,6 +14,7 @@ import { SessionModule } from './session/session.module';
 import { PreferencesModule } from './preferences/preferences.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { TaskModule } from './task/task.module';
+import { NotificationModule } from './notification/notification.module';
 
 const {
   HOST = 'localhost',
@@ -35,6 +36,7 @@ const {
       entities: getMetadataArgsStorage().tables.map((table) => table.target),
       keepConnectionAlive: true,
       synchronize: true,
+      logging: true,
     }),
     AuthModule,
     UserModule,
@@ -48,6 +50,7 @@ const {
       },
     }),
     TaskModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
