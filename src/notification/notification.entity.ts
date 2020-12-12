@@ -5,14 +5,14 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserNotification } from './user_notification.entity';
 
 @Entity({ name: 'notifications' })
 export class Notification {
-  @PrimaryColumn({ name: 'id' })
-  notificationId: string;
+  @PrimaryGeneratedColumn({ name: 'id' })
+  notificationId: number;
 
   @Column()
   title: string;
@@ -26,7 +26,7 @@ export class Notification {
   @Column({ default: '' })
   subject: string;
 
-  @Column({ default: true })
+  @Column({ default: true, select: false })
   broadcast: boolean;
 
   @ManyToOne(() => User, (user) => user.sendedNotifications)

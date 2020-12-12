@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/user.entity';
 import { In, Repository } from 'typeorm';
 import { Notification } from './notification.entity';
 import { UserNotification } from './user_notification.entity';
-import uuid from '../utils/uuid';
+import _ from 'lodash';
+
+export type NotificationType = 'public' | 'private';
 
 @Injectable()
 export class NotificationService {
@@ -38,23 +40,122 @@ export class NotificationService {
           subject: string;
         },
       ),
-      notificationId: uuid(),
       sender: user,
-      broadcast: !notification.receivers,
+      broadcast:
+        !notification.receivers ||
+        (Array.isArray(notification.receivers) &&
+          notification.receivers.length === 0),
     });
+    const result = await this.notificationRepository.save(notificationInfo);
     const receivers = await this.userRepository.find({
       where: { email: In((notification.receivers || []) as string[]) },
     });
-    const userNotifications: UserNotification[] = receivers.map(() => {
+    const userNotifications: UserNotification[] = receivers.map((receiver) => {
       const userNotification = this.userNotificationRepository.create({
         checked: false,
-        notification: notificationInfo,
-        user,
+        notification: result,
+        user: receiver,
       });
       return userNotification;
     });
+    if (userNotifications.length === 0) {
+      userNotifications.push(
+        this.userNotificationRepository.create({
+          checked: true,
+          notification: result,
+          user,
+        }),
+      );
+    }
     notificationInfo.userNotifications = userNotifications;
+    await this.notificationRepository.save(notificationInfo);
     await this.userNotificationRepository.save(userNotifications);
-    return await this.notificationRepository.save(notificationInfo);
+    return result;
+  }
+
+  /**
+   * get all notifications
+   * @param lastCursor number
+   * @param size number
+   * @param type NotificationType
+   */
+  async getNotifications(
+    user: User,
+    lastCursor: number,
+    size: number,
+    type: NotificationType,
+  ) {
+    const lastNotificationId =
+      lastCursor || (await this.notificationRepository.count()) + 1;
+    const { email } = user;
+    switch (type) {
+      case 'public': {
+        const checkedStatus = [];
+        const [rawItems, total] = await this.notificationRepository
+          .createQueryBuilder('notifications')
+          .where('notifications.broadcast = 1')
+          .andWhere('notifications.notificationId < :lastNotificationId', {
+            lastNotificationId,
+          })
+          .take(size)
+          .orderBy('notifications.notificationId', 'DESC')
+          .getManyAndCount();
+        const userNotificationRelations = await this.userNotificationRepository.find(
+          {
+            relations: ['notification'],
+            where: {
+              notification: In(rawItems.map((item) => item.notificationId)),
+              user,
+            },
+          },
+        );
+        userNotificationRelations.forEach((relation) => {
+          if (relation.checked) {
+            checkedStatus[relation.notification.notificationId] = 1;
+          }
+        });
+        const items = rawItems.map((rawItem) => {
+          const itemWithoutUserNotifications = _.omit(
+            rawItem,
+            'userNotifications',
+          );
+          return {
+            ...itemWithoutUserNotifications,
+            checked: checkedStatus[rawItem.notificationId] === 1,
+          };
+        });
+        return { items, total };
+      }
+      case 'private': {
+        const [rawItems, total] = await this.notificationRepository
+          .createQueryBuilder('notifications')
+          .innerJoinAndSelect(
+            'notifications.userNotifications',
+            'user_notifications',
+            'email = :email',
+            { email },
+          )
+          .where('notifications.broadcast = 0')
+          .andWhere('notifications.notificationId < :lastNotificationId', {
+            lastNotificationId,
+          })
+          .take(size)
+          .orderBy('notifications.notificationId', 'DESC')
+          .getManyAndCount();
+        const items = rawItems.map((rawItem) => {
+          const itemWithoutUserNotifications = _.omit(
+            rawItem,
+            'userNotifications',
+          );
+          return {
+            ...itemWithoutUserNotifications,
+            checked: rawItem.userNotifications[0].checked,
+          };
+        });
+        return { items, total };
+      }
+      default:
+        throw new BadRequestException('参数错误');
+    }
   }
 }

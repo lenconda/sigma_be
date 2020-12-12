@@ -1,8 +1,8 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/user/user.decorator';
 import { User } from 'src/user/user.entity';
-import { NotificationService } from './notification.service';
+import { NotificationService, NotificationType } from './notification.service';
 
 @Controller('/api/notification')
 export class NotificationController {
@@ -12,5 +12,21 @@ export class NotificationController {
   @Post()
   async publish(@CurrentUser() user: User, @Body() notification: any) {
     return await this.notificationService.publish(user, notification);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get()
+  async getAllPublicNotifications(
+    @CurrentUser() user: User,
+    @Query('last_cursor') lastCursor: number,
+    @Query('size') size = 10,
+    @Query('type') type: NotificationType = 'public',
+  ) {
+    return await this.notificationService.getNotifications(
+      user,
+      lastCursor,
+      size,
+      type,
+    );
   }
 }
