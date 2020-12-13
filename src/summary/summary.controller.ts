@@ -2,7 +2,7 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { SummaryService } from './summary.service';
 
-@Controller('summary')
+@Controller('/api/summary')
 export class SummaryController {
   constructor(private readonly summaryService: SummaryService) {}
 
