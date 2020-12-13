@@ -5,14 +5,14 @@ import {
   DeleteDateColumn,
   Entity,
   ManyToOne,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'templates' })
 export class Template {
-  @PrimaryColumn({ name: 'id' })
-  templateId: string;
+  @PrimaryGeneratedColumn({ name: 'id' })
+  templateId: number;
 
   @Column()
   name: string;
