@@ -31,7 +31,7 @@ export class SessionService {
   async active(email: string, code: string) {
     const user = await this.userRepository.findOne({ email, code });
     if (!user) {
-      throw new NotFoundException('账户无法识别');
+      throw new ForbiddenException('无法识别当前账户');
     }
     if (user.active) {
       throw new BadRequestException('账户已激活，无需再次激活');
