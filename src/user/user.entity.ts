@@ -10,6 +10,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { UserNotification } from 'src/notification/user_notification.entity';
+import { Template } from 'src/template/template.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -67,4 +68,10 @@ export class User {
     },
   )
   userNotifications: UserNotification[];
+
+  @OneToMany(() => Template, (template) => template.creator, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  templates: Template[];
 }
