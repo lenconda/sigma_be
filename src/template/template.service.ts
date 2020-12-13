@@ -51,14 +51,21 @@ export class TemplateService {
     size: number,
   ) {
     const lastTemplateId =
-      lastCursor || (await this.templateRepository.count()) + 1;
+      lastCursor ||
+      (
+        (
+          await this.templateRepository.find({
+            order: { templateId: 'DESC' },
+          })
+        )[0] || { templateId: 0 }
+      ).templateId + 1;
     let creator = await this.userRepository.findOne({ email });
     if (!creator) {
       creator = user;
     }
     const [rawItems, count] = await this.templateRepository.findAndCount({
       relations: ['creator'],
-      where: { templateId: LessThan(lastTemplateId) },
+      where: { templateId: LessThan(lastTemplateId), creator },
       order: { templateId: 'DESC' },
       take: size,
     });

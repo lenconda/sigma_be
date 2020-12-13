@@ -86,7 +86,14 @@ export class NotificationService {
     type: NotificationType,
   ) {
     const lastNotificationId =
-      lastCursor || (await this.notificationRepository.count()) + 1;
+      lastCursor ||
+      (
+        (
+          await this.notificationRepository.find({
+            order: { notificationId: 'DESC' },
+          })
+        )[0] || { notificationId: 0 }
+      ).notificationId + 1;
     const { email } = user;
     switch (type) {
       case 'public': {
