@@ -73,7 +73,7 @@ export class TaskService {
    * @param info TaskListItem
    */
   async createTask(user: User, task: TaskListItem, parentTaskId: string) {
-    const currentUser = await this.userRepository.findOne(
+    const creator = await this.userRepository.findOne(
       {
         email: user.email,
       },
@@ -97,18 +97,20 @@ export class TaskService {
             { taskId: 'default' },
             { relations: ['children'] },
           );
-    const taskInfo = this.taskRepository.create(taskToBeCreated);
+    const taskInfo = this.taskRepository.create({
+      ...taskToBeCreated,
+      creator,
+    });
     parentTaskInfo.children = (
       (parentTaskInfo.children && Array.from(parentTaskInfo.children)) ||
       []
     ).concat(taskInfo);
-    currentUser.tasks = (
-      (currentUser.tasks && Array.from(currentUser.tasks)) ||
-      []
-    ).concat(taskInfo);
+    creator.tasks = ((creator.tasks && Array.from(creator.tasks)) || []).concat(
+      taskInfo,
+    );
     const result = await this.taskRepository.insert(taskInfo);
     await this.taskRepository.save(parentTaskInfo);
-    await this.userRepository.save(currentUser);
+    await this.userRepository.save(creator);
     return result;
   }
 

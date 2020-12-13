@@ -19,16 +19,22 @@ export class TemplateService {
    * @param creator User
    * @param templateInfo Partial<Template>
    */
-  async createTemplate(creator: User, templateInfo: Partial<Template>) {
+  async createTemplate(user: User, templateInfo: Partial<Template>) {
+    const creator = await this.userRepository.findOne(
+      { email: user.email },
+      { relations: ['templates'] },
+    );
     const template: Template = this.templateRepository.create({
       ..._.omit(templateInfo, ['templateId']),
       creator,
     });
-    const result = await this.templateRepository.insert(template);
-    const user = await this.userRepository.findOne({ email: creator.email });
-    user.templates = (user.templates || []).concat(template);
-    await this.userRepository.save(user);
-    return result;
+    creator.templates = (
+      (creator.templates && Array.from(creator.templates)) ||
+      []
+    ).concat(template);
+    await this.templateRepository.insert(template);
+    await this.userRepository.save(creator);
+    return template;
   }
 
   /**
@@ -78,7 +84,10 @@ export class TemplateService {
     if (rawTemplateInfo.creator.email !== user.email) {
       throw new ForbiddenException('没有权限修改模板');
     }
-    const updateTemplateInfo = _.pick(updates, ['name, content']);
+    const updateTemplateInfo = _.pickBy(
+      updates,
+      (value, key) => key === 'name' || key === 'content',
+    );
     return await this.templateRepository.update(
       { templateId },
       updateTemplateInfo,
@@ -98,7 +107,7 @@ export class TemplateService {
         templateId: In(templateIds),
       },
     });
-    return await this.templateRepository.delete(
+    return await this.templateRepository.softDelete(
       templates.map((template) => template.templateId),
     );
   }

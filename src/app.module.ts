@@ -16,6 +16,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { TaskModule } from './task/task.module';
 import { NotificationModule } from './notification/notification.module';
 import { TemplateModule } from './template/template.module';
+import { SummaryModule } from './summary/summary.module';
 
 const {
   HOST = 'localhost',
@@ -52,6 +53,7 @@ const {
     TaskModule,
     NotificationModule,
     TemplateModule,
+    SummaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

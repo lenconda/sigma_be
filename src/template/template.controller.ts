@@ -51,7 +51,7 @@ export class TemplateController {
     @Param('id') id: number,
     @Body() updates: Partial<Template>,
   ) {
-    return await this.updateTemplate(user, id, updates);
+    return await this.templateService.updateTemplate(user, id, updates);
   }
 
   @UseGuards(AuthGuard('jwt'))
