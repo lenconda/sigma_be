@@ -98,15 +98,17 @@ export class NotificationService {
     switch (type) {
       case 'public': {
         const checkedStatus = [];
-        const [rawItems, total] = await this.notificationRepository
+        const countQuery = this.notificationRepository
           .createQueryBuilder('notifications')
-          .where('notifications.broadcast = 1')
+          .orderBy('notifications.notificationId', 'DESC')
+          .where('notifications.broadcast = 1');
+        const total = await countQuery.getCount();
+        const itemsQuery = countQuery
+          .take(size)
           .andWhere('notifications.notificationId < :lastNotificationId', {
             lastNotificationId,
-          })
-          .take(size)
-          .orderBy('notifications.notificationId', 'DESC')
-          .getManyAndCount();
+          });
+        const rawItems = await itemsQuery.getMany();
         const userNotificationRelations = await this.userNotificationRepository.find(
           {
             relations: ['notification'],
@@ -134,7 +136,7 @@ export class NotificationService {
         return { items, total };
       }
       case 'private': {
-        const [rawItems, total] = await this.notificationRepository
+        const countQuery = this.notificationRepository
           .createQueryBuilder('notifications')
           .innerJoinAndSelect(
             'notifications.userNotifications',
@@ -142,13 +144,15 @@ export class NotificationService {
             'email = :email',
             { email },
           )
-          .where('notifications.broadcast = 0')
+          .orderBy('notifications.notificationId', 'DESC')
+          .where('notifications.broadcast = 0');
+        const total = await countQuery.getCount();
+        const itemsQuery = countQuery
+          .take(size)
           .andWhere('notifications.notificationId < :lastNotificationId', {
             lastNotificationId,
-          })
-          .take(size)
-          .orderBy('notifications.notificationId', 'DESC')
-          .getManyAndCount();
+          });
+        const rawItems = await itemsQuery.getMany();
         const items = rawItems.map((rawItem) => {
           const itemWithoutUserNotifications = _.omit(
             rawItem,

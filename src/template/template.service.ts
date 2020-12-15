@@ -63,14 +63,17 @@ export class TemplateService {
     if (!creator) {
       creator = user;
     }
-    const [rawItems, count] = await this.templateRepository.findAndCount({
+    const items = await this.templateRepository.find({
       relations: ['creator'],
-      where: { templateId: LessThan(lastTemplateId), creator },
+      where: {
+        creator,
+        templateId: LessThan(lastTemplateId),
+      },
       order: { templateId: 'DESC' },
       take: size,
     });
-
-    return { items: rawItems, count };
+    const total = await this.templateRepository.count({ creator });
+    return { items, total };
   }
 
   /**

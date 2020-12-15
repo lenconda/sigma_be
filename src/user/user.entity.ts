@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { UserNotification } from 'src/notification/user_notification.entity';
 import { Template } from 'src/template/template.entity';
+import { Record } from 'src/record/record.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -74,4 +75,10 @@ export class User {
     onUpdate: 'CASCADE',
   })
   templates: Template[];
+
+  @OneToMany(() => Record, (record) => record.creator, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  records: Record[];
 }

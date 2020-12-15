@@ -17,6 +17,7 @@ import { TaskModule } from './task/task.module';
 import { NotificationModule } from './notification/notification.module';
 import { TemplateModule } from './template/template.module';
 import { SummaryModule } from './summary/summary.module';
+import { RecordModule } from './record/record.module';
 
 const {
   HOST = 'localhost',
@@ -54,6 +55,7 @@ const {
     NotificationModule,
     TemplateModule,
     SummaryModule,
+    RecordModule,
   ],
   controllers: [AppController],
   providers: [AppService],
