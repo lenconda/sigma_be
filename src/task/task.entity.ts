@@ -42,6 +42,9 @@ export class Task {
   @Column({ nullable: true })
   description: string;
 
+  @Column({ default: -1 })
+  priority: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: string;
 

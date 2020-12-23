@@ -117,7 +117,7 @@ export class TemplateService {
         templateId: In(templateIds),
       },
     });
-    return await this.templateRepository.softDelete(
+    return await this.templateRepository.delete(
       templates.map((template) => template.templateId),
     );
   }

@@ -138,7 +138,7 @@ export class TaskService {
    */
   async deleteTask(user: User, taskId: string) {
     await this.checkTask(user, taskId);
-    return await this.taskRepository.softDelete({ taskId });
+    return await this.taskRepository.delete({ taskId });
   }
 
   /**
@@ -153,7 +153,10 @@ export class TaskService {
     if (!parentTask) {
       throw new BadRequestException('任务从属关系错误');
     }
-    const items = await this.taskRepository.find({ parentTask, creator });
+    const items = await this.taskRepository.find({
+      where: { parentTask, creator },
+      relations: ['children'],
+    });
     return { items };
   }
 }
