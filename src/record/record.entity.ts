@@ -8,16 +8,24 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export enum RecordType {
+  OPERATION = 'operation',
+  EXCEPTION = 'exception',
+}
+
 @Entity({ name: 'records' })
 export class Record {
   @PrimaryGeneratedColumn({ name: 'id' })
   recordId: number;
 
-  @ManyToOne(() => User, (user) => user.records)
-  creator: User;
-
   @Column({ default: '' })
   content: string;
+
+  @Column({ type: 'enum', enum: RecordType, nullable: true })
+  type: RecordType;
+
+  @ManyToOne(() => User, (user) => user.records)
+  creator: User;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

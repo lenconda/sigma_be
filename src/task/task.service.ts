@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import _ from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
@@ -153,10 +154,18 @@ export class TaskService {
     if (!parentTask) {
       throw new BadRequestException('任务从属关系错误');
     }
-    const items = await this.taskRepository.find({
+    const rawItems = await this.taskRepository.find({
       where: { parentTask, creator },
       relations: ['children'],
+      order: {
+        order: 'ASC',
+      },
     });
-    return { items };
+    return {
+      items: rawItems.map((rawItem) => ({
+        ..._.omit(rawItem, ['children']),
+        childrenCount: rawItem.children.length,
+      })),
+    };
   }
 }
