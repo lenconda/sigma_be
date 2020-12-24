@@ -18,9 +18,10 @@ export class RecordController {
   @Get()
   async queryRecords(
     @CurrentUser() user: User,
+    @Query('type') type: string,
     @Query('last_cursor') lastCursor: number,
     @Query('size') size = 10,
   ) {
-    return await this.recordService.queryRecords(user, lastCursor, size);
+    return await this.recordService.queryRecords(user, type, lastCursor, size);
   }
 }

@@ -7,11 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-export enum RecordType {
-  OPERATION = 'operation',
-  EXCEPTION = 'exception',
-}
+import { RecordType } from './record_type.entity';
 
 @Entity({ name: 'records' })
 export class Record {
@@ -21,7 +17,7 @@ export class Record {
   @Column({ default: '' })
   content: string;
 
-  @Column({ type: 'enum', enum: RecordType, nullable: true })
+  @ManyToOne(() => RecordType, (recordType) => recordType.id)
   type: RecordType;
 
   @ManyToOne(() => User, (user) => user.records)
